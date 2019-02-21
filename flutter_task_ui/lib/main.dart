@@ -25,6 +25,16 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   double _imageHeight = 256.0;
+  final GlobalKey<AnimatedListState> _listKey =
+      new GlobalKey<AnimatedListState>();
+  ListModel listModel;
+  bool showOnlyCompleted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    listModel = new ListModel(_listKey, tasks);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +46,7 @@ class _MainPageState extends State<MainPage> {
           _buildTopHeader(),
           _buildProfileRow(),
           _buildBottomPart(),
+          _buildFab(),
         ],
       ),
     );
@@ -140,10 +151,15 @@ class _MainPageState extends State<MainPage> {
 
   Widget _buildTasksList() {
     return new Expanded(
-      child: new ListView(
-        children: tasks.map((task) => new TaskRow(task: task)).toList(),
-      ),
-    );
+        child: new AnimatedList(
+      initialItemCount: tasks.length,
+      key: _listKey,
+      itemBuilder: (context, index, animation) {
+        return new TaskRow(
+          task: tasks[index],
+        );
+      },
+    ));
   }
 
   Widget _buildMyTasksHeader() {
@@ -179,6 +195,29 @@ class _MainPageState extends State<MainPage> {
       ),
     );
   }
+
+  Widget _buildFab() {
+    return new Positioned(
+      top: _imageHeight - 36.0,
+      right: 16.0,
+      child: new FloatingActionButton(
+        onPressed: _changeFilterState,
+        backgroundColor: Colors.pink,
+        child: new Icon(Icons.filter_list),
+      ),
+    );
+  }
+
+  void _changeFilterState() {
+    showOnlyCompleted = !showOnlyCompleted;
+    tasks.where((task) => !task.completed).forEach((task) {
+      if (showOnlyCompleted) {
+        listModel.removeAt(listModel.indexOf(task));
+      } else {
+        listModel.insert(tasks.indexOf(task), task);
+      }
+    });
+  }
 }
 
 List<Task> tasks = [
@@ -212,16 +251,32 @@ List<Task> tasks = [
       time: "10am",
       color: Colors.cyan,
       completed: true),
-  new Task(
-      name: "Design explorations",
-      category: "Company Website",
-      time: "2pm",
-      color: Colors.pink,
-      completed: false),
-  new Task(
-      name: "Make new icons",
-      category: "Web App",
-      time: "3pm",
-      color: Colors.cyan,
-      completed: true),
 ];
+
+class ListModel {
+  final GlobalKey<AnimatedListState> listKey;
+  final List<Task> items;
+
+  ListModel(this.listKey, items) : this.items = new List.of(items);
+
+  AnimatedListState get _animatedList => listKey.currentState;
+
+  void insert(int index, Task item) {
+    items.insert(index, item);
+    _animatedList.insertItem(index);
+  }
+
+  Task removeAt(int index) {
+    final Task removedItem = items.removeAt(index);
+    if (removedItem != null) {
+      _animatedList.removeItem(index, (context, animation) => new Container());
+    }
+    return removedItem;
+  }
+
+  int get length => items.length;
+
+  Task operator [](int index) => items[index];
+
+  int indexOf(Task item) => items.indexOf(item);
+}
