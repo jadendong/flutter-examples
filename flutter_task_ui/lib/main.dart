@@ -55,8 +55,8 @@ class _MainPageState extends State<MainPage> {
   Widget _buildImage() {
     return new ClipPath(
       clipper: new DialogClipper(),
-      child: new Image.network(
-        'https://img2.mukewang.com/szimg/5b723de80001ec9b05400300.jpg',
+      child: new Image.asset(
+        'images/birds.jpg',
         fit: BoxFit.fitHeight,
         height: _imageHeight,
         color: Color.fromARGB(120, 20, 10, 40),
@@ -104,8 +104,7 @@ class _MainPageState extends State<MainPage> {
           new CircleAvatar(
               minRadius: 28.0,
               maxRadius: 28.0,
-              backgroundImage: new NetworkImage(
-                  'https://avatars2.githubusercontent.com/u/14342176?s=400&u=d6c1848af82d9f882153ab934d1b7d9204a1e657&v=4')),
+              backgroundImage: new AssetImage('images/avatar.jpg')),
           new Padding(
             padding: EdgeInsets.only(left: 16.0),
             child: new Column(
